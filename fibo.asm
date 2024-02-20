@@ -59,7 +59,7 @@ print_and_run:
 	
 fib:
 	#Starting conditions - return 0/1 if input is 0/1 (accordingly)
-	#This part is before saving to stack because no changes re made here
+	#This part is before saving to stack so that we won't have to pop everything from stack when reaching END0/END1
 	beq $a0, $0, END0
 	addi $t0, $0, 1
 	beq $a0, $t0, END1
