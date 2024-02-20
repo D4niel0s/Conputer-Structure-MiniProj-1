@@ -124,46 +124,55 @@ string_to_array:
 #################################################
 	
 get_length:
+	#Push to stack
 	addi $sp, $sp, -4
 	sw $a0, 0($sp)
 
 	lb $t0, newline
-	addi $t1, $0, -1
+	addi $t1, $0, -1 #Start counter from -1 because we have a do{}while() functionality when we increment counter.
 
 	LOOP:
+		#Load next character to $t2
 		lw $t2, 0($a0)
 
 		addi $a0, $a0, 4
 		addi $t1, $t1, 1
 
 		bne $t2, $t0, LOOP
-		
+	
+	#Return value is counter; String's length
 	add $v0, $t1, $0
 
+	#Retrieve stack
 	lw $a0, 0($sp)
 	addi $sp, $sp, 4
+
 	jr $ra
 	
 is_pali_loop:
-	addi $sp, $sp, -4
+	#Push to stack
+	addi $sp, $sp, -8
 	sw $a1, 0($sp)
+	sw $a0, 4($sp)
 
 	#save last char's address in $t1
+	#$a0 has length of string, so we need to multiply it by 2^2
 	sll $a0, $a0, 2
 	add $t1, $a1, $a0
 	addi $t1, $t1, -4
-	sra $a0, $a0, 2
+	lw $a0, 4($sp) #Undo changes done to $a0 (for further use)
 
 	addi $t2, $0, 0 #Counter
-	sra $a0, $a0, 1
-	addi $v0, $0, 0
+	sra $a0, $a0, 1 #We need to check n/2 iterations because each iteration we check two characters
+	addi $v0, $0, 0 #Set initial return value to zero
 	
 	LOOP1:
+		#Load and compare first and last character
 		lw $t4, 0($t1)
 		lw $t5, 0($a1)
 
 		beq $t2, $a0, YES #Reached end
-		bne $t4, $t5, NO #Found non-equal char
+		bne $t4, $t5, NO #Found non-equal chararacters
 
 		addi $t1, $t1, -4
 		addi $a1, $a1, 4
@@ -172,12 +181,14 @@ is_pali_loop:
 		beq $t4, $t5, LOOP1 #Next iteration
 
 	YES:
-		addi $v0, $v0, 1
+		addi $v0, $v0, 1 #If we reached here we got $v0 = 1, and when we add 0 to it in "NO" we still have $v0 = 1
 	NO:
-		addi $v0, $v0, 0
+		addi $v0, $v0, 0 #If we reached here from LOOP directly, $v0 remains 0
 
+	#Retrieve stack
 	lw $a1, 0($sp)
-	addi $sp, $sp, 4
+	lw $a0, 4($sp)
+	addi $sp, $sp, 8
 
 	jr $ra
 
@@ -185,6 +196,7 @@ is_pali_recursive:
 
 	beq $a0, 1, SUCCESS #One character string is a palindrome
 
+	#Push to stack
 	addi $sp, $sp, -8
 	sw $a0, 0($sp)
 	sw $ra, 4($sp)
@@ -193,7 +205,7 @@ is_pali_recursive:
 	sll $a0, $a0, 2
 	add $t1, $a1, $a0
 	addi $t1, $t1, -4
-	sra $a0, $a0, 2
+	lw $a0, 0($sp)
 
 	#Compare last and first
 	lw $t2, 0($a1)
@@ -201,20 +213,21 @@ is_pali_recursive:
 
 	bne $t2, $t3, FAILURE
 
-	#Run recursion with new parameters
+	#Run recursion with new arguments
 	addi $a1, $a1, 4
 	addi $a0, $a0, -2
 	jal is_pali_recursive
 
+	#Retrieve stack
 	lw $a0, 0($sp)
 	lw $ra, 4($sp)
 	addi $sp, $sp, 8
 
 	jr $ra
 
-	SUCCESS:
+	SUCCESS: #"Return 1"
 		addi $v0, $0, 1
 		jr $ra
-	FAILURE:
+	FAILURE: #"Return 0"
 		addi $v0, $0, 0
 		jr $ra

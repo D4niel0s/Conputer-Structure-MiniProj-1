@@ -64,23 +64,27 @@ fib:
 	addi $t0, $0, 1
 	beq $a0, $t0, END1
 
-	#"vars" used: a0,s0,s1,ra
+	#Push to stack
 	addi $sp, $sp, -16
 	sw $a0, 0($sp)
 	sw $s0, 4($sp)
 	sw $s1, 8($sp)
 	sw $ra, 12($sp)
 	
+	#Run fib(n-1) and store in $s0
 	addi $a0, $a0, -1
 	jal fib
 	add $s0, $0, $v0
 
+	#Run fib(n-2) and store in $s1
 	addi $a0, $a0, -1
 	jal fib
 	add $s1, $0, $v0
 
+	#Return value is fib(n-1)+fib(n-2)
 	add $v0, $s0, $s1
 	
+	#Retrieve from stack
 	lw $a0, 0($sp)
 	lw $s0, 4($sp)
 	lw $s1, 8($sp)
